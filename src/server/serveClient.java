@@ -27,7 +27,7 @@ import java.util.logging.Handler;
 public class serveClient {
     private static final Logger LOGGER=Logger.getLogger(serveClient.class.getName());
 
-    public static void serveClient(Socket client, Integer counter,int exchangeInterval) throws URISyntaxException {
+    public static void serveClient(Socket client, Integer counter,int exchangeInterval) throws URISyntaxException, IOException {
     	boolean debug=true;
             Handler consoleHandler=null;
             consoleHandler=new ConsoleHandler();
@@ -43,16 +43,12 @@ public class serveClient {
             // Output Stream
             DataOutputStream output = new DataOutputStream(clientSocket.getOutputStream());
             // receiving message 
-            //String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-            //System.out.println(time + " - [RECEIVE] - " + input.readUTF());
-            if(debug)
-            LOGGER.fine("[RECEIVED]:"+input.readUTF());
-            //time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-            String message = "connection with client " + counter + " established.";
-            //System.out.println(time + " - [INFO] - " + message);
-            LOGGER.removeHandler(consoleHandler);
-            LOGGER.info(message);
-            output.writeUTF(message);
+           
+            
+           
+           String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+           System.out.println(time + " - [INFO] - connection with client " + counter + " established.");
+           
             
             
             while (true) {

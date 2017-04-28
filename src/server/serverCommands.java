@@ -42,66 +42,167 @@ public class serverCommands {
     String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
 
     public void exchange(JSONObject command, DataOutputStream output, int exchangeInterval) throws IOException {
+
+        /*
+        1 - Copy all in serverList (from the command) to the server's server.serverRecords 
+        
+        2 - If the server is included in the list, remove it (because it may connect to itself)
+        
+        3a - Enforce rules:  check if list of servers received is empty (missing or invalid server list)
+        3b - Enforce rules:  check if server record received is wrong (missing resourcetemplate )
+      
+      
+        4 - Pick a random server
+        
+        5 - Attemp connect to the randomly selected server
+        
+        6 - Sending the list to the randomly selected server
+        
+        7 - Display distinct servers in the serverRecords
+        
+        8 - Filter out only unique records from serverRecords
+
+        9 - If the connection with the random server is not established remove serverRecord
+
+         */
         resource = (JSONObject) command.get("resource");
         JSONObject response = new JSONObject();
         JSONArray serverArray = new JSONArray();
+        serverArray = (JSONArray) command.get("serverList");
 
-        // serverinfo is the 'servers' argument that we receive from Client command line
-        //String serverinfo = "localhost:3000, localhost:8000, localhost:5000";
-        String serverinfo = command.get("servers").toString();
+        /*
+        
+        1 - Copy all in serverList (from the command) to the server's server.serverRecords 
+        
+         */
+        for (int i = 0; i < serverArray.size(); i++) {
+            Server.serverRecords.add(serverArray.get(i));
+        }
 
-        //String serverinfo= (String) resource.get("servers");
-        //check if list of servers received is empty
-        if (serverinfo == "") {
+        /*
+        
+        2 - IF the server contains itself in the serverrecords list, then remove it
+        
+         */
+        JSONObject serverTraverser = new JSONObject();
+        for (int i = 0; i < Server.serverRecords.size(); i++) {
+            serverTraverser = (JSONObject) Server.serverRecords.get(i);
+            if (serverTraverser.get("hostname").equals(Server.host)) {
+                if (serverTraverser.get("port").equals(Server.port)) {
+                    Server.serverRecords.remove(i);
+                }
+
+            }
+        }
+
+        /*
+        
+        3a -  Enforce rules:  check if list of servers received is empty (missing or invalid server list)
+         */
+        if (Server.serverRecords.isEmpty()) {
             response.put("response", "error");
             response.put("errorMessage", "missing or invalid server list");
-        } else {
-            //Storing all the host:port in the array of Strings.
-            String[] serverList = serverinfo.split(","); 
-            for (int i = 0; i < serverList.length; i++) { 
+            output(response, output);
+            return;
 
-                JSONObject serverObject = new JSONObject();
-                String hostname = serverList[i].split(":")[0].trim();
-                int port = Integer.valueOf(serverList[i].split(":")[1].trim());
-                serverObject.put("hostname", hostname);
-                serverObject.put("port", port);
-                serverArray.add(serverObject);
-                Server.serverRecords.add(serverObject);
+        } else {
+            /*
+        
+         3b -  Enforce rules:  check if server record received is wrong (missing resourcetemplate )
+             */
+            for (int i = 0; i < Server.serverRecords.size(); i++) {
+                serverTraverser = (JSONObject) Server.serverRecords.get(i);
+                if (serverTraverser.get("port").equals("???")) {
+                    response.put("response", "error");
+                    response.put("errorMessage", "missing resourceTemplate");
+                    output(response, output);
+                    return;
+                }
             }
 
-            //Pick a random server to connect from the list
+            /*
+        
+                4 - Pick a random server to connect from the list
+        
+             */
             Random r = new Random();
-            String random;
-            random = serverList[r.nextInt(serverList.length)];
+            JSONObject randomServer = new JSONObject();
+            int size = Integer.valueOf(Server.serverRecords.size());
+            int index = Integer.valueOf(r.nextInt(size));
+            randomServer = (JSONObject) Server.serverRecords.get(index);
 
-            String connect_host = random.split(":")[0].trim();
-            int connect_port = Integer.valueOf(random.split(":")[1].trim());
+            /*
+        
+                5 - Attemp connect to the randomly selected server
+        
+             */
+            String connect_host = randomServer.get("hostname").toString();
+            int connect_port = ((Long) randomServer.get("port")).intValue();
 
             try {
-                // Create connection with the selected server from the serverlist
                 Socket socket = null;
                 socket = new Socket(connect_host, connect_port);
+                time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
                 socket.setSoTimeout(exchangeInterval);
-                System.out.println("Exchange with " + connect_host + ":" + connect_port + " successful!");
-                response.put("response", "success");
-                // response.put("serverList", serverArray);
+                System.out.println(time + " - [INFO] - exchange with " + connect_host + ":" + connect_port + " is successful.");
+                /*
+        
+                6 - Sending the list to the randomly selected server
+        
+                 */
+
+                JSONObject listToRandomServer = new JSONObject();
+                listToRandomServer.put("command", "EXCHANGE");
+                listToRandomServer.put("serverList", Server.serverRecords);
+                DataOutputStream serverOutput = new DataOutputStream(socket.getOutputStream());
+                output(listToRandomServer, serverOutput);
+
+                /*
+        
+                7 - Display distinct servers in the serverRecords
+        
+                 */
+                DataInputStream serverInput = new DataInputStream(socket.getInputStream());
+                String message = serverInput.readUTF();
+                JSONParser parser = new JSONParser();
+                JSONObject JSONresponse = (JSONObject) parser.parse(message);
+                time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+                System.out.println(time + " - [RECEIVE QUERY] - " + JSONresponse.toJSONString());
+
+                /*
+        
+                8 - Filter out only unique records from serverRecords
+        
+                 */
                 Set<String> setWithUniqueValues = new HashSet<>(Server.serverRecords);
                 ArrayList<String> listWithUniqueValues = new ArrayList<>(setWithUniqueValues);
                 Server.serverRecords = listWithUniqueValues;
-                response.put("serverList", Server.serverRecords);
 
             } catch (Exception e) {
-                System.out.println("There's some error!" + e);
-                final List<String> list = new ArrayList<String>();
-                Collections.addAll(list, serverList);
-                list.remove(random);
-                serverList = list.toArray(new String[list.size()]);
-                response.put("response", "error");
-                response.put("errorMessage", "missing resourceTemplate");
+                /*
+        
+                9 - If the connection with the random server is not established remove serverRecord
+        
+                 */
+                time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+                System.out.println(time + " - [INFO] - connection with server " + connect_host + ":" + connect_port + " was not successful: " + e);
+                serverTraverser = new JSONObject();
+                for (int i = 0; i < Server.serverRecords.size(); i++) {
+                    serverTraverser = (JSONObject) Server.serverRecords.get(i);
+                    if (serverTraverser.get("hostname").equals(connect_host) && serverTraverser.get("port").equals(connect_port)) {
+                        Server.serverRecords.remove(i);
+
+                    }
+                }
+                System.out.println(Server.serverRecords);
+
+            } finally {
+                response.put("response", "success");
+                output(response, output);
             }
 
         }
-        output(response, output);
+
     }
 
     public void fetch(JSONObject command, DataOutputStream output) throws IOException, URISyntaxException {
@@ -276,7 +377,7 @@ public class serverCommands {
         ArrayList queryResult = new ArrayList();
         JSONObject response = new JSONObject();
         time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-        System.out.println(time + " - [REMOVE LATER] -  resources for server " + Server.host + ":" + Server.port + " are : "+ Server.serverResources);
+        System.out.println(time + " - [REMOVE LATER] -  resources for server " + Server.host + ":" + Server.port + " are : " + Server.serverResources);
 
         /*
         
@@ -288,18 +389,17 @@ public class serverCommands {
             add to queryResult
         
          */
-        
         if (relay) {
             if (Server.serverRecords.isEmpty()) {
                 //If the server Records list is empty
                 //Just don't do anything
                 System.out.println("Server list is empty");
             } else {
-                
+
                 System.out.println("Server list is not empty");
                 String connect_host = "";
                 int connect_port;
-                JSONObject hostPort =new JSONObject();
+                JSONObject hostPort = new JSONObject();
                 //Get request string ready
                 JSONObject request = new JSONObject();
                 // JSONArray to receive query results from each server
@@ -321,7 +421,6 @@ public class serverCommands {
                     
                  */
 
-              
                 for (int i = 0; i < Server.serverRecords.size(); i++) {
                     /* 
                     if ONLINE 
@@ -334,8 +433,8 @@ public class serverCommands {
                     System.out.println("Connecting to server " + Server.serverRecords.get(i));
 
                     hostPort = (JSONObject) Server.serverRecords.get(i);
-                  //  int iend = hostPort.indexOf(":");
-                   // System.out.println("Index of : " + iend);
+                    //  int iend = hostPort.indexOf(":");
+                    // System.out.println("Index of : " + iend);
 
                     connect_host = hostPort.get("hostname").toString();
                     //hostPort.substring(0, iend);
@@ -344,28 +443,27 @@ public class serverCommands {
                     connect_port = Integer.parseInt(hostPort.get("port").toString());
 //Integer.parseInt(hostPort.substring(iend + 1, hostPort.length()));
                     System.out.println("PORT NAME:" + connect_port);
-                    
-                    if (!(connect_host == Server.host && connect_port == Server.port))
-                    {
-                    try {
-                        // Create connection with the selected server from the serverlist
-                        Socket socket = null;
-                        socket = new Socket(connect_host, connect_port);
-                        DataOutputStream serverOutput = new DataOutputStream(socket.getOutputStream());
-                        serverOutput.writeUTF("Connecting to server "+ Server.serverRecords.get(i));
-                        output(request, serverOutput);
-                         // Input stream
-                        DataInputStream input = new DataInputStream(socket.getInputStream());
-                        // If there are query results:
-                        if (!receiveQuery(input).isEmpty()) {
-                            queryResult.addAll(receiveQuery(input));
-                        }
 
-                        // for each in Query results
-                        socket.close();
-                    } catch (Exception e) {
-                        Server.serverRecords.remove(i);
-                    }
+                    if (!(connect_host == Server.host && connect_port == Server.port)) {
+                        try {
+                            // Create connection with the selected server from the serverlist
+                            Socket socket = null;
+                            socket = new Socket(connect_host, connect_port);
+                            DataOutputStream serverOutput = new DataOutputStream(socket.getOutputStream());
+                            serverOutput.writeUTF("Connecting to server " + Server.serverRecords.get(i));
+                            output(request, serverOutput);
+                            // Input stream
+                            DataInputStream input = new DataInputStream(socket.getInputStream());
+                            // If there are query results:
+                            if (!receiveQuery(input).isEmpty()) {
+                                queryResult.addAll(receiveQuery(input));
+                            }
+
+                            // for each in Query results
+                            socket.close();
+                        } catch (Exception e) {
+                            Server.serverRecords.remove(i);
+                        }
                     }
                 }
 
@@ -557,13 +655,12 @@ public class serverCommands {
     public ArrayList receiveQuery(DataInputStream input) throws IOException, ParseException, URISyntaxException {
 
         //READ RESPONSE (error or success)
-          String firstResponse = input.readUTF();
-          JSONParser parser = new JSONParser();
-          JSONObject JSONresponse = (JSONObject) parser.parse(firstResponse);
-                     
-        System.out.println("[RECEIVE] :" + JSONresponse.get("response")); 
-        
-        
+        String firstResponse = input.readUTF();
+        JSONParser parser = new JSONParser();
+        JSONObject JSONresponse = (JSONObject) parser.parse(firstResponse);
+
+        System.out.println("[RECEIVE] :" + JSONresponse.get("response"));
+
         Integer size = -1;
         Integer resultSize;
         Long result = 0L;
@@ -571,37 +668,36 @@ public class serverCommands {
         Boolean done = false;
         //Resource object to hold the JSON object retrieved for each resource 
         Resource resource = new Resource();
-        if (JSONresponse.get("response") == "success"){
-            
-      
-        while (true) {
+        if (JSONresponse.get("response") == "success") {
 
-            if (input.available() > 0) {
-                String serverResponse = input.readUTF();
-                 JSONObject response = (JSONObject) parser.parse(serverResponse);
-                //juST TO make sure we're receiving a resource
-                if (response.containsKey("URI")) {
-                    resource = Resource.parseJson(response);
-                    query.add(resource);
-                }
-                size += 1;
+            while (true) {
 
-                if (response.containsKey("resultSize") || result == 0L) {
-                    result = (Long) response.get("resultSize");
-                    resultSize = Integer.valueOf(result.intValue());
+                if (input.available() > 0) {
+                    String serverResponse = input.readUTF();
+                    JSONObject response = (JSONObject) parser.parse(serverResponse);
+                    //juST TO make sure we're receiving a resource
+                    if (response.containsKey("URI")) {
+                        resource = Resource.parseJson(response);
+                        query.add(resource);
+                    }
+                    size += 1;
 
-                    if (size == resultSize) {
-                        done = true;
+                    if (response.containsKey("resultSize") || result == 0L) {
+                        result = (Long) response.get("resultSize");
+                        resultSize = Integer.valueOf(result.intValue());
+
+                        if (size == resultSize) {
+                            done = true;
+                        }
                     }
                 }
-            }
 
-            if (done) {
-                break;
-            }
+                if (done) {
+                    break;
+                }
 
+            }
         }
-          }
         return query;
     }
 
@@ -616,8 +712,8 @@ public class serverCommands {
             LOGGER.addHandler(consoleHandler);
             consoleHandler.setLevel(Level.ALL);
             LOGGER.setLevel(Level.ALL);
-           // LOGGER.fine("[SEND]:" + response.toJSONString());
-           
+            // LOGGER.fine("[SEND]:" + response.toJSONString());
+
         }
 
         output.writeUTF(response.toJSONString());

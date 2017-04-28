@@ -64,6 +64,7 @@ public class Resource {
     }
  
     public void setOwner(String owner) {
+      System.out.println(owner);
         this.owner = owner;
     }
  
@@ -86,15 +87,30 @@ public class Resource {
     */
     public static JSONObject inputToJSON(String commandname,String name , String owner, String description, String channel, String uri, List<String> tags, String ezserver, String secret, Boolean relay, String servers, DataInputStream input, DataOutputStream output) throws IOException, URISyntaxException{
             
+          String[] serverList = servers.split(",");
+          JSONArray serverArray = new JSONArray();
+            for (int i = 0; i < serverList.length; i++) {
+                JSONObject serverObject = new JSONObject();
+                String hostname = serverList[i].split(":")[0].trim();
+                
+                  try {  int port = Integer.valueOf(serverList[i].split(":")[1].trim());
+                    serverObject.put("hostname", hostname);
+                    serverObject.put("port", port);
+                    serverArray.add(serverObject);
+                  }
+                  catch ( Exception e){
+                      serverArray.set(i, "???");
+                  }
+                    
+            }
+            
             name = name.trim();
             owner = owner.trim();
             description = description.trim();
             channel = channel.trim();
             ezserver = ezserver.trim();         
-            uri = uri.trim(); 
-            
-            owner = owner.replace("*", ""); 
-            
+            uri = uri.trim();             
+            owner = owner.replace("*", "");             
             owner = owner.replace("\0", ""); 
             channel = channel.replace("\0", ""); 
             name = name.replace("\0", ""); 
@@ -131,7 +147,7 @@ public class Resource {
                    {  request.put("resourceTemplate", resourceObj); }
                 case "EXCHANGE":
                 {
-                    request.put("servers", servers); 
+                    request.put("serverList", serverArray); 
                 }
                 
             }

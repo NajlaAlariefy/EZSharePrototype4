@@ -36,7 +36,7 @@ public class Client {
 
     // IP and port
     private static String ip = "localhost";
-    private static int port = 5000;
+    private static int port = 3000;
     private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
 
     @SuppressWarnings("empty-statement")
@@ -70,21 +70,21 @@ public class Client {
         //  Scanner sc = new Scanner(System.in);    
         //String commandName = sc.nextLine();
         List<String> tags = Arrays.asList("css");
-        String commandName = "EXCHANGE";
-        String name = "a name";
+        String commandName = "PUBLISH";
+        String name = "aname";
         String description = "descp";
-        String URI = "file:///Users/najla/Dropbox/DistributedSystems/GITHUB_5PM/EZSharePrototype3/akshat.png";
-        String owner = " an owner";
+        String URI = "https://Google.com";//"file:///Users/najla/Dropbox/DistributedSystems/GITHUB_5PM/EZSharePrototype3/akshat.png";
+        String owner = "an owner";
         String channel = "channel";
         String ezserver = "localhost:5000 ";
         String secret = "ticd8pais2dj4yku60fxpvtg3e9564";
-        String serverList = "localhost:3000, localhost:5000, localhost:8000";
+        String servers = "localhost:3000, localhost:5000, localhost:8000";
         Boolean relay = true;
         /*Parsing the command line arg*/
         // CHECKING FOR HOST & PORT
         if (cmd.hasOption("servers")) {
-            serverList = cmd.getOptionValue("servers");
-            if (serverList == "") {
+            servers = cmd.getOptionValue("servers");
+            if (servers == "") {
                 isValid = false;
                 System.out.println("No servers present");
             } else {
@@ -139,24 +139,16 @@ public class Client {
                 owner = (cmd.getOptionValue("owner").trim());
             }
 
-        } else {
-            owner = "";
-        }
+        }  
         if (cmd.hasOption("channel")) {
             channel = (cmd.getOptionValue("channel").trim());
-        } else {
-            channel = "";
-        }
+        }  
         if (cmd.hasOption("name")) {
             name = (cmd.getOptionValue("name").trim());
-        } else {
-            name = "";
-        }
+        }  
         if (cmd.hasOption("description")) {
             description = cmd.getOptionValue("description").trim();
-        } else {
-            description = "";
-        }
+        }  
         List<String> tagList = new ArrayList<>();
         if (cmd.hasOption("tags")) {
             String[] tags1 = cmd.getOptionValue("tags").split(",");
@@ -172,7 +164,7 @@ public class Client {
         }
         boolean debug = false;
         if (cmd.hasOption("debug")) {
-            debug = true;
+           // debug = true;
         }
         if (cmd.hasOption("publish")) {
             commandName = "PUBLISH";
@@ -212,21 +204,23 @@ public class Client {
                 //String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
                 //System.out.println(time + " - [INFO] - requesting connection with server");
                 String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-                System.out.println(time + " - [SEND] - " + "requesting connection with server");
+                System.out.println(time + " - [INFO] - " + "requesting connection with server");
 
-                //  LOGGER.info("requesting connection with server");
-                output.writeUTF("requesting connection with server");
-                output.flush();
+             
 
                 /*
             RECEIVING RESPONSE FROM SERVER
                  */
                 
+                  time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+                System.out.println(time + " - [INFO] - connection with server is established");
+
+                
+                
+                /* DELETE LATER
                 String message =  input.readUTF();
-                 System.out.println( " - [RECEIVED] - " + message);
                 JSONParser parser = new JSONParser();
                 JSONObject JSONresponse = (JSONObject) parser.parse(message);
-                System.out.println( " - [RECEIVED] - " + message);
                 time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
                 System.out.println(time + " - [RECEIVE] - " + JSONresponse.toJSONString());
 
@@ -235,11 +229,15 @@ public class Client {
                 LOGGER.addHandler(consoleHandler);
                 consoleHandler.setLevel(Level.ALL);
                 LOGGER.setLevel(Level.ALL);
+                
                 // LOGGER.fine("[RECEIVED]:" + message);
              
                 //time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
                 //System.out.println(time + " - [RECEIVE] - " + message);
-
+*/
+                
+                
+                
                 /*
             READING ARGUMENTS FROM CLI 
             (for now only command name is read, the rest is hardcoded.
@@ -264,11 +262,8 @@ public class Client {
                  */
                 JSONObject command = new JSONObject();
                 Resource resource = new Resource();
-                if (!cmd.hasOption("exchange")) {
-                    command = resource.inputToJSON(commandName, name, owner, description, channel, URI, tags, ezserver, secret, relay, serverList, input, output);
-                } else {
-                    command = resource.inputToJSON(serverList, commandName);
-                }
+                command = resource.inputToJSON(commandName, name, owner, description, channel, URI, tags, ezserver, secret, relay, servers, input, output);
+                
                 /*
             SEND COMMAND TO SERVER
                  */
@@ -284,8 +279,8 @@ public class Client {
 
                     if (input.available() > 0) {
                         String response = input.readUTF();
-                         parser = new JSONParser();
-                         JSONresponse = (JSONObject) parser.parse(response);
+                         JSONParser parser = new JSONParser();
+                         JSONObject JSONresponse = (JSONObject) parser.parse(response);
                         time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
                         System.out.println(time + " - [RECEIVE] - " + JSONresponse.toJSONString());
                         //if(debug)
