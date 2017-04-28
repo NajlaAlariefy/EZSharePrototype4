@@ -30,7 +30,7 @@ import org.json.simple.parser.JSONParser;
  */
 public class serverInteractions {
 
-    public void exchange() throws IOException {
+public void exchange() throws IOException {
 
         //Pick a random server to connect from the list
         if (Server.serverRecords.isEmpty()) {

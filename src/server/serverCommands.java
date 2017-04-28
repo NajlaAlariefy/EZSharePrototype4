@@ -288,8 +288,15 @@ public class serverCommands {
             //store URI in URI object
             String link = (String) resource.get("uri");
             URI uri = new URI(link);
-
+            if (link.equals("") )
+                    {
+                         response.put("response", "error");
+                            response.put("errorMessage", "missing resource");
+                            output(response,output);
+                            return;
+                    }
             //check for rules
+            
             Boolean isWeb = uri.getScheme().equals("http") || uri.getScheme().equals("https");
             Boolean isAbsolute = uri.isAbsolute();
             String present = (String) resource.get("uri");
@@ -376,9 +383,7 @@ public class serverCommands {
         Resource resourceObject = (Resource) Resource.parseJson(resource);
         ArrayList queryResult = new ArrayList();
         JSONObject response = new JSONObject();
-        time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-        System.out.println(time + " - [REMOVE LATER] -  resources for server " + Server.host + ":" + Server.port + " are : " + Server.serverResources);
-
+     
         /*
         
         IF RELAY IS TRUE

@@ -73,7 +73,7 @@ public class Client {
         String commandName = "PUBLISH";
         String name = "aname";
         String description = "descp";
-        String URI = "https://Google.com";//"file:///Users/najla/Dropbox/DistributedSystems/GITHUB_5PM/EZSharePrototype3/akshat.png";
+        String URI = "abc.com";
         String owner = "an owner";
         String channel = "channel";
         String ezserver = "localhost:5000 ";
@@ -201,10 +201,8 @@ public class Client {
                  */
                 DataInputStream input = new DataInputStream(socket.getInputStream());
                 DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-                //String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-                //System.out.println(time + " - [INFO] - requesting connection with server");
                 String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-                System.out.println(time + " - [INFO] - " + "requesting connection with server");
+                System.out.println(time + " - [INFO] - requesting connection with server");
 
              
 
@@ -263,8 +261,7 @@ public class Client {
                 JSONObject command = new JSONObject();
                 Resource resource = new Resource();
                 command = resource.inputToJSON(commandName, name, owner, description, channel, URI, tags, ezserver, secret, relay, servers, input, output);
-                
-                /*
+                 /*
             SEND COMMAND TO SERVER
                  */
                 //System.out.println("Server: Sending: " + command.toString());

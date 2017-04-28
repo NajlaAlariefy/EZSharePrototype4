@@ -64,7 +64,6 @@ public class Resource {
     }
  
     public void setOwner(String owner) {
-      System.out.println(owner);
         this.owner = owner;
     }
  
@@ -130,41 +129,42 @@ public class Resource {
             JSONObject request = new JSONObject();
             
             request.put("command", commandname);
-           // request.put("serverList", serverList);
-            
+             
             switch(commandname){
                 case "PUBLISH":
                 case "REMOVE":
-                {  request.put("resource", resourceObj); }
+                {  request.put("resource", resourceObj);
+                break;}
                 
                 case "SHARE":
                 {   request.put("secret", secret);
-                    request.put("resource", resourceObj); }
+                    request.put("resource", resourceObj); 
+                 break;}
                 case "QUERY":
                    {   request.put("relay", relay);
-                        request.put("resourceTemplate", resourceObj); } 
+                        request.put("resourceTemplate", resourceObj);
+                    break;} 
                 case "FETCH":
-                   {  request.put("resourceTemplate", resourceObj); }
+                   {  request.put("resourceTemplate", resourceObj); 
+                    break;}
                 case "EXCHANGE":
                 {
-                    request.put("serverList", serverArray); 
+                       request.put("serverList", serverArray);
+                        break;
                 }
+                default:
+                    System.out.println("[INFO] - command name is invalid");
                 
             }
             
             
-               
+              
             return (request);
             
           
     }
 
-    public static JSONObject inputToJSON(String serverList,String commandname){
-    	JSONObject request = new JSONObject();
-    	request.put("command", commandname);
-    	request.put("serverList", serverList);
-    	return request;
-    }
+     
     
     //Function to convert Resource object to JSON Object
     public static JSONObject toJson(Resource resource){
