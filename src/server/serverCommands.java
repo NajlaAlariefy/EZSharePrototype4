@@ -112,7 +112,7 @@ public class serverCommands {
              */
             for (int i = 0; i < Server.serverRecords.size(); i++) {
                 serverTraverser = (JSONObject) Server.serverRecords.get(i);
-                if (serverTraverser.get("port").equals("???")) {
+                if (serverTraverser.get("port").equals("invalid")) {
                     response.put("response", "error");
                     response.put("errorMessage", "missing resourceTemplate");
                     output(response, output);
@@ -206,7 +206,6 @@ public class serverCommands {
     }
 
     public void fetch(JSONObject command, DataOutputStream output) throws IOException, URISyntaxException {
-
         //initiating response (same for all functions)
         JSONObject response = new JSONObject();
         resource = (JSONObject) command.get("resourceTemplate");
@@ -214,49 +213,44 @@ public class serverCommands {
 
         URI URI = new URI("");
 
+        // Check if the server has the file with the input channel and URI
         Resource fetchResource = new Resource();
         for (int i = 0; i < Server.serverResources.size(); i++) {
             fetchResource = (Resource) Server.serverResources.get(i);
             if (resourcePublish.getChannel().equals(fetchResource.getChannel())
                     && resourcePublish.getUri().toString().equals(fetchResource.getUri().toString())) {
                 URI = fetchResource.getUri();
-
             }
         }
 
         File f = new File(URI.getPath());
 
-        //check if the file exist
+        //check if the file exists
         if (f.exists()) {
             Boolean isFile = URI.getScheme().equals("file");
-
+            // check if URI is empty and URI follows the correct scheme
             if (URI.equals("") && !isFile) {
+                // Response if URI is invalid
                 response.put("response", "error");
                 response.put("errorMessage", "invalid resource.");
                 output(response, output);
             } else {
+               // Response if it is a success
                 System.out.println("Server: File " + URI + " exists.");
-
-                resource.put("resourceSize", f.length());
-
+            resource.put("resourceSize", f.length());
                 response.put("response", "success");
                 output(response, output);
-
                 output(resource, output);
-
                 try {
                     //read file as random access file
                     RandomAccessFile byteFile = new RandomAccessFile(f, "r");
                     byte[] sendingBuffer = new byte[1024 * 1024];
-
                     int num;
                     while ((num = byteFile.read(sendingBuffer)) > 0) {
-
                         output.write(Arrays.copyOf(sendingBuffer, num));
-
                     }
                     byteFile.close();
-
+                    response.remove("response","success");
                     response.put("resultSize", "1");
                     output(response, output);
 
@@ -266,12 +260,11 @@ public class serverCommands {
                 }
             }
         } else {
-
+           // Response if the file is not there on server
             response.put("response", "error");
             response.put("errorMessage", "Missing resource.");
             output(response, output);
         }
-
     }
 
     public void publish(JSONObject command, DataOutputStream output) throws IOException, URISyntaxException {
@@ -741,9 +734,7 @@ public class serverCommands {
             consoleHandler.setLevel(Level.ALL);
             LOGGER.setLevel(Level.ALL);
             // LOGGER.fine("[SEND]:" + response.toJSONString());
-
         }
-
         output.writeUTF(response.toJSONString());
 
     }

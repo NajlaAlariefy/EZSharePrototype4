@@ -75,15 +75,17 @@ public class Client {
         String ip = "localhost";
         int port = 3000;
         List<String> tags = Arrays.asList("css");
-        String commandName = "QUERY";
+
+        String commandName = "FETCH";
         String name = "aname";
         String description = "   descp   ";
-        String URI = "http://GOOGLE.com/a\0dvertising/youtube-preroll";
+        String URI = "file:///Users/najla/Dropbox/DistributedSystems/EZSharePrototype4/NAME.png"; //http://GOOGLE.com/a\0dvertising/youtube-preroll";
         String owner = " a o";
         String channel = "jjOA";
-        String ezserver = "localhost:5000 ";
-        String secret = "ticd8pais2dj4yku60fxpvtg3e9564";
+        String ezserver = "";
+        String secret = "qy931oc4of9sopezinijw80xw5sh7m";
         String servers = "localhost:3000, localhost:5000, localhost:8000";
+
         boolean relay = true; 
 
         /*
