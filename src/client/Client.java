@@ -75,15 +75,15 @@ public class Client {
         String ip = "localhost";
         int port = 3000;
         List<String> tags = Arrays.asList("css");
-        String commandName = "PUBLISH";
-        String name = "aname";
-        String description = "descp";
-        String URI = "abc.com";
-        String owner = "an owner";
-        String channel = "channel";
-        String ezserver = "localhost:5000 ";
-        String secret = "ticd8pais2dj4yku60fxpvtg3e9564";
-        String servers = "localhost:3000, localhost:5000, localhost:8000";
+        String commandName = "FETCH";
+        String name = "alisha";
+        String description = "dbdbd";
+        String URI = "file:///home/alisha/NetBeansProjects/EZSharePrototype4/NAME.png";
+        String owner = "abvd";
+        String channel = "localho";
+        String ezserver = "localhost:3000";
+        String secret = "a8rq7peos93dl89sxwttzsyrrkcrjt";
+        String servers = "";
         boolean relay = true; 
 
         /*

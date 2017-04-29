@@ -32,9 +32,7 @@ public class clientCommands {
 
     public void fetch(JSONObject response, DataInputStream input) throws FileNotFoundException, IOException, ParseException {
         if (response.get("response").equals("error")) {
-
         } else {
-
             String serverResponse = input.readUTF();
             boolean debug = true;
             Handler consoleHandler = null;
@@ -42,62 +40,50 @@ public class clientCommands {
             LOGGER.addHandler(consoleHandler);
             consoleHandler.setLevel(Level.ALL);
             LOGGER.setLevel(Level.ALL);
-
             JSONParser parser = new JSONParser();
             JSONObject resource = (JSONObject) parser.parse(serverResponse);
             String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
             //System.out.println(time + " - [RECEIVE] - " +resource.toJSONString());
             if (debug) {
                 time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-
                 System.out.println(time + " - [RECEIVE] -  " + resource.toJSONString());
-
                 //  LOGGER.fine("[RECEIVED]" + resource.toJSONString());
             }
             String filename = (String) resource.get("name");
             if (filename.equals("")) {
                 time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HH.mm.ss"));
-
                 filename = "File_" + time;
             }
             RandomAccessFile downloadingFile = new RandomAccessFile(filename + ".png", "rw");
-
             long fileSizeRemaining = (Long) resource.get("resourceSize");
             int chunkSize = 1024 * 1024;
-
             if (fileSizeRemaining < chunkSize) {
                 chunkSize = (int) fileSizeRemaining;
-
             }
             byte[] receiveBuffer = new byte[chunkSize];
             int num;
-
             LOGGER.info("Ready to receive file");
             LOGGER.info("File size:" + fileSizeRemaining);
             //System.out.println("- [INFO] - ready to receive file");
             //System.out.println("- [INFO] - file size: " + fileSizeRemaining);
             while ((num = input.read(receiveBuffer)) > 0) {
                 downloadingFile.write(Arrays.copyOf(receiveBuffer, num));
-
                 fileSizeRemaining -= num;
                 chunkSize = 1024 * 1024;
                 if (fileSizeRemaining < chunkSize) {
-
                     chunkSize = (int) fileSizeRemaining;
-
                     receiveBuffer = new byte[chunkSize];
                     if (fileSizeRemaining == 0) {
                         break;
                     }
                 }
-
             }
             //System.out.println("Client: File Received!");
             LOGGER.fine("FILE RECEIVED");
             downloadingFile.close();
         }
     }
-
+    
     //This function will receive the query list from 
     public void query(JSONObject command, DataInputStream input) throws IOException, ParseException {
         Integer size = -1;
