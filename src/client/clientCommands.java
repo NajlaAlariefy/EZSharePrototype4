@@ -9,6 +9,8 @@ import java.io.RandomAccessFile;
 import java.util.Arrays;
 import org.json.simple.JSONObject;
 import Utilities.Resource;
+import jdk.internal.org.objectweb.asm.util.CheckAnnotationAdapter;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
@@ -36,13 +38,17 @@ public class clientCommands {
 
             //if the name is not provided, an automatic file name is created
             String filename = (String) resource.get("name");
+            String uri = (String) resource.get("uri");
+            
+            String ext = uri.substring(uri.lastIndexOf(".") + 1).trim();
+            
             if (filename.equals("")) {
                 String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HH.mm.ss"));
                 filename = "File_" + time;
             }
-
+            
             // receive the file
-            RandomAccessFile downloadingFile = new RandomAccessFile(filename + ".png", "rw");
+            RandomAccessFile downloadingFile = new RandomAccessFile(filename+"."+ext,"rw");
             long fileSizeRemaining = (Long) resource.get("resourceSize");
             int chunkSize = 1024 * 1024;
             if (fileSizeRemaining < chunkSize) {

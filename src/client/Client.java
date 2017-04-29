@@ -72,11 +72,11 @@ public class Client {
              1- initialized arguments (hardcoded)
         
          */
-        String ip = "";
+        String ip = "localhost";
         int port = 8000;
         List<String> tags = Arrays.asList("");
 
-        String commandName = "";
+        String commandName = "EXCHANGE";
         String name = "";
         String description = "";
         String URI = ""; 
@@ -84,7 +84,7 @@ public class Client {
         String channel = "";
         String ezserver = "";
         String secret = "";
-        String servers = "";
+        String servers = "localhost:8000";
 
         boolean relay = true; 
 
