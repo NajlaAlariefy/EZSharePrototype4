@@ -295,9 +295,11 @@ public class serverCommands {
                             output(response,output);
                             return;
                     }
+            
             //check for rules
             
-            Boolean isWeb = uri.getScheme().equals("http") || uri.getScheme().equals("https");
+            System.out.println("some error" + uri.toString());
+             Boolean isWeb = uri.getScheme().equals("http") || uri.getScheme().equals("https");
             Boolean isAbsolute = uri.isAbsolute();
             String present = (String) resource.get("uri");
             Boolean isPresent = present.equals("");
