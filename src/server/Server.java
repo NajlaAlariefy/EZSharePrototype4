@@ -30,47 +30,24 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 /*
-1- open server for connections SERVER.JAVA
-
-2- while there is a client SERVER.JAVA
-
-3- initiate client server SERVER.JAVA
-
-4- while true, take in command and arguments -------- serveClient.JAVA
-
-5- parse the command --------- parseCommand.JAVA
-
-6- process commands (from serverCommands) and return response ---------serverCommands.JAVA
-
-7- still take in any commands while true ------- serveClient.JAVA
- */
- /*
-Communication: 
- 
-client: REQUEST command
-server: REPLY command
-
-(if fetch or query, REPLY is long so listen many times until end)
-
-(if query:
- 
-
-server1: REQUEST command (query)
-server2: REPLY command (query list)
-
-)
+1- declare variables
+2- parse command line
+3- open server for connections  
+4- while there is a client 
+5- initiate client server 
 
 
 
-
+6- while true, take in command and arguments                   -------- serveClient.JAVA
+7- parse the command                                            --------- parseCommand.JAVA
+8- process commands (from serverCommands) and return response ---------serverCommands.JAVA
+9- still take in any commands while true                        ------- serveClient.JAVA
 
  */
-public class Server {
 
-    public static String host = "localhost";
-    public static int port = 3000;
-    private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
 
+public class Server { 
+    
     private static String randomString() {
         String SALTCHARS = "abcdefghijklmnopqrstuvwxyz1234567890";
         StringBuilder salt = new StringBuilder();
@@ -83,20 +60,24 @@ public class Server {
         return saltStr;
 
     }
+    
+    // VARIABLE DECLARATION
+    public static String host = "localhost";
+    public static int port = 3000;
+    private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
     public static String secret = randomString();
     public static ArrayList serverResources = new ArrayList();
     public static ArrayList serverRecords = new ArrayList();
-
-    public Server(String host, int port) {
-        host = host;
-        port = port;
-    }
-    // Identifies the user number connected
-    private static int counter = 0;
-    static int exchangeInterval = 10000;//10*60*1000;
+    public static boolean debug = true;
+    private static int counter = 0;    // identifies the user number connected
+    static int exchangeInterval = 60000;     // a minute between each server exchange
+    static int connectionIntervalLimit = 1000;    // a second between each connection
+    
+    
 
     public static void main(String[] args) throws org.apache.commons.cli.ParseException, InterruptedException {
-
+        
+        //CLI PARSING
         Options options = new Options();
         options.addOption("advertisedhostname", true, "advertised hostname");
         options.addOption("connectionintervallimit", true, "connection interval limit in seconds");
@@ -107,12 +88,12 @@ public class Server {
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
         cmd = parser.parse(options, args);
-        /*if (cmd.hasOption("advertisedhostname")){
-			ServerConfig.HOST_NAME=cmd.getOptionValue("advertisedhostname");
-		}*/
- /*if (cmd.hasOption("connectionintervallimit")){
-			ServerConfig.CONNECTION_INTERVAL=(int)Double.parseDouble(cmd.getOptionValue("connectionintervallimit"))*1000;
-		}*/
+        if (cmd.hasOption("advertisedhostname")) {
+            host = cmd.getOptionValue("advertisedhostname");
+        }
+        if (cmd.hasOption("connectionintervallimit")) {
+            connectionIntervalLimit = (int) Double.parseDouble(cmd.getOptionValue("connectionintervallimit")) * 1000;
+        }
         if (cmd.hasOption("exchangeinterval")) {
             exchangeInterval = (int) Double.parseDouble(cmd.getOptionValue("exchangeinterval")) * 1000;
         }
@@ -123,38 +104,27 @@ public class Server {
             secret = cmd.getOptionValue("secret");
         }
         if (cmd.hasOption("debug")) {
-            boolean debug = Boolean.parseBoolean(cmd.getOptionValue("debug"));
+            debug = Boolean.parseBoolean(cmd.getOptionValue("debug"));
         }
 
-        /*
-            1- OPEN SERVER FOR CONNECTIONS
-         */
+        
+        
+        
+        
+        
+        // OPEN SERVER FOR CONNECTIONS      
         ServerSocketFactory factory = ServerSocketFactory.getDefault();
-
         try (ServerSocket server = factory.createServerSocket(port)) {
-            String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-            System.out.println(time + " - [INFO] - Starting the EZShare Server");
-            //  LOGGER.info("Starting the EZShare server");
-            time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-            System.out.println(time + " - [INFO] - using secret: " + secret);
-            // LOGGER.info("Using Secret:"+secret);
-            time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-            System.out.println(time + " - [INFO] - using advertised hostname: " + host);
-            //LOGGER.info("Using advertised Hostname:"+host);
-            time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-            System.out.println(time + " - [INFO] - bound to port: " + port);
-            // LOGGER.info("Bound to port:"+port);
-            time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-            System.out.println(time + " - [INFO] - EXCHANGE stared ");
-            // LOGGER.info("Exchange started");
+            debug("INFO", "starting the EZShare Server");
+            debug("INFO", "using advertised hostname: " + host);
+            debug("INFO", "bound to port: " + port);
+            debug("INFO", "using secret: " + secret);
+            debug("INFO", "interval exchange stared ");
 
-            /*
-                2- WHILE TRUE, WAIT FOR ANY CLIENT
-             */
+            //SERVER INTERACTIONS BY EXCHANGE INITIATED
             class serverExchanges extends TimerTask {
-
                 public void run() {
-                     serverInteractions si = new serverInteractions();
+                    serverInteractions si = new serverInteractions();
                     try {
                         si.exchange();
                     } catch (IOException ex) {
@@ -162,20 +132,21 @@ public class Server {
                     }
                 }
             }
-
-            // And From your main() method or any other method
             Timer timer = new Timer();
             timer.schedule(new serverExchanges(), 0, exchangeInterval);
+
             
+            
+            
+            
+            //WHILE TRUE, WAIT FOR ANY CLIENT          
             while (true) {
                 serveClient sc = new serveClient();
                 Socket client = server.accept();
                 counter++;
-                time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-                System.out.println(time + " - [INFO] - client " + counter + " requesting connection");
-                //  LOGGER.info("Client"+counter+"requesting connection");
-                // Start a new thread for a connection 
+                debug("INFO", "client" + counter + " requesting connection");
 
+                //START A NEW THREAD FOR CONNECTION
                 Thread t = new Thread(() -> {
                     try {
                         sc.serveClient(client, counter, exchangeInterval);
@@ -193,11 +164,29 @@ public class Server {
         }
 
     }
- static void debug(String type, String message) {
-       boolean debug = true;
-        if (debug){
-        String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-        System.out.println(time + " - [" + type + "] - " + message);
+
+    static void debug(String type, String message) {
+         if (debug) {
+            String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+            System.out.println(time + " - [" + type + "] - " + message);
         }
     }
 }
+
+
+
+ /*
+Communication pattern: 
+ 
+client: REQUEST command
+server: REPLY command
+
+(if fetch or query, REPLY is long so listen many times until end)
+
+(if query relay is true:
+
+server1: REQUEST command (query)
+server2: REPLY command (query list)
+
+)  
+ */

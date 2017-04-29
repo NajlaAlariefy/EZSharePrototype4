@@ -13,29 +13,23 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 
 public class parseCommand {
-     private static final Logger LOGGER=Logger.getLogger(parseCommand.class.getName());
 
-    public static void parseCommand(JSONObject command, DataOutputStream output,int exchangeInterval) throws IOException, URISyntaxException, ParseException {
+    private static final Logger LOGGER = Logger.getLogger(parseCommand.class.getName());
 
-        /*
-        SERVER COMMANDS ALWAYS GO THROUGH HERE FIRST
-        to get parsed
-        
-         */
-          JSONObject response = new JSONObject();
-                  
+    public static void parseCommand(JSONObject command, DataOutputStream output, int exchangeInterval) throws IOException, URISyntaxException, ParseException {
+
+        JSONObject response = new JSONObject();
+
         if (command.containsKey("command")) {
-             String  time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-             System.out.println(time + " - [INFO] - command " + command.get("command") + " received.");
-          // LOGGER.info("Command "+command.get("command")+" received");
+            Server.debug("INFO" , command.get("command") + " received.");
+            Server.debug("INFO" , "command message:" + command.toJSONString());
+           
+             
+            // THE COMMANDS GET PARSED IN serverCommands
             serverCommands cmd = new serverCommands();
-            /*
-            some commands return an object (not needed). the updated ones return void only
-            since all messages will be passed through output and input streams.
-            */
             switch ((String) command.get("command")) {
                 case "EXCHANGE":
-                     cmd.exchange(command, output,exchangeInterval);
+                    cmd.exchange(command, output, exchangeInterval);
                     break;
                 case "FETCH":
                     cmd.fetch(command, output);
@@ -44,45 +38,31 @@ public class parseCommand {
                     cmd.publish(command, output);
                     break;
                 case "QUERY":
-                     cmd.query(command, output);
+                    cmd.query(command, output);
                     break;
                 case "REMOVE":
-                     cmd.remove(command, output);
+                    cmd.remove(command, output);
                     break;
                 case "SHARE":
                     cmd.share(command, output);
                     break;
 
-                default: 
-                {   
-                      //time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-                //System.out.println(time + " - [SEND] - command is incorrect" );
+                default: { 
                     response.put("response", "error");
                     response.put("errorMessage", "invalid command");
                     output.writeUTF(response.toJSONString());
-                    boolean debug=true;
-                Handler consoleHandler=null;
-                consoleHandler=new ConsoleHandler();
-                LOGGER.addHandler(consoleHandler);
-                consoleHandler.setLevel(Level.ALL);
-                LOGGER.setLevel(Level.ALL);
-                if(debug)
-                LOGGER.fine("[SEND]:"+"Command is incorrect");
-                
-                }
-                
+                    Server.debug("SEND", response.toJSONString());
                      
-            }
-        }
-        else
-        {
-            //if the command is missing 
-             response.put("response", "error");
-                    response.put("errorMessage", "missing or incorrect type for command");
-                    output.writeUTF(response.toJSONString());
-        }
-        
 
-         
+                }
+
+            }
+        } else {
+            //if the command is missing 
+            response.put("response", "error");
+            response.put("errorMessage", "missing or incorrect type for command");
+            output.writeUTF(response.toJSONString());
+        }
+
     }
 }
