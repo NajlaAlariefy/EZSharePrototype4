@@ -72,26 +72,24 @@ public class Client {
              1- initialized arguments (hardcoded)
         
          */
-        String ip = "localhost";
-        int port = 5000;
+        String ip = "";
+        int port = 8000;
         List<String> tags = Arrays.asList("");
 
-        String commandName = "EXCHANGE";
+        String commandName = "";
         String name = "";
-        String description = "      ";
-        String URI = "http://GOOGLE.com/";;//file:///Users/najla/Dropbox/DistributedSystems/EZSharePrototype4/NAME.png"; 
-        String owner = " ";
-        String channel = "jjOA";
+        String description = "";
+        String URI = ""; 
+        String owner = "";
+        String channel = "";
         String ezserver = "";
-        String secret = "b7hbk0l0up9ayp064udcubtxepzmcj";
-        String servers = "localhost:3000, localhost:5000, localhost:8000";
+        String secret = "";
+        String servers = "";
 
         boolean relay = true; 
 
         /*
-    
              2- CLI parsing
-        
          */
         boolean isValid = false;
         Options options = new Options();

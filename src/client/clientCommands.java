@@ -28,7 +28,6 @@ public class clientCommands {
 
         if (response.get("response").equals("error")) {
         } else {
-
             //if the resource received is a success
             String serverResponse = input.readUTF();
             JSONParser parser = new JSONParser();

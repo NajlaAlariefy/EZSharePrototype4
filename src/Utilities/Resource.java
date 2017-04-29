@@ -43,8 +43,7 @@ public class Resource {
         this.tags = tags;
     }
  
-    public URI getUri() {
-        
+    public URI getUri() {  
         return uri;
     }
  
@@ -76,9 +75,6 @@ public class Resource {
         this.server = server;
     }
     
-
-   
-    
     /*function to convert CLI to JSON string 
     
     1 -  must not contain the null character "\0"  
@@ -105,9 +101,7 @@ public class Resource {
                   }     
             
           }
-            
-            
-            
+              
             
             /*
             
@@ -159,29 +153,25 @@ public class Resource {
                 case "SHARE":
                 {   request.put("secret", secret);
                     request.put("resource", resourceObj); 
-                 break;}
+                 break;
+                }
                 case "QUERY":
-                   {   request.put("relay", relay);
-                        request.put("resourceTemplate", resourceObj);
-                    break;} 
+                {   request.put("relay", relay);
+                    request.put("resourceTemplate", resourceObj);
+                    break;
+                } 
                 case "FETCH":
-                   {  request.put("resourceTemplate", resourceObj); 
-                    break;}
+                {   request.put("resourceTemplate", resourceObj); 
+                    break;
+                }
                 case "EXCHANGE":
-                {
-                       request.put("serverList", serverArray);
-                        break;
+                {   request.put("serverList", serverArray);
+                    break;
                 }
                 default:
-                 // no need for message:  Client.debug("INFO" , "command name is invalid");
-                
-            }
-            
-            
-              
+                 // no need for message:  Client.debug("INFO" , "command name is invalid");  
+            }  
             return (request);
-            
-          
     }
 
      

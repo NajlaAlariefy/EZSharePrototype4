@@ -51,7 +51,6 @@ public class serverCommands {
         3a - Enforce rules:  check if list of servers received is empty (missing or invalid server list)
         3b - Enforce rules:  check if server record received is wrong (missing resourcetemplate )
 
-
         4 - Pick a random server
 
         5 - Attemp connect to the randomly selected server
@@ -69,7 +68,6 @@ public class serverCommands {
         JSONObject response = new JSONObject();
         JSONArray serverArray = new JSONArray();
         serverArray = (JSONArray) command.get("serverList");
-
         /*
 
         1 - Copy all in serverList (from the command) to the server's server.serverRecords
@@ -78,25 +76,21 @@ public class serverCommands {
         for (int i = 0; i < serverArray.size(); i++) {
             Server.serverRecords.add(serverArray.get(i));
         }
-
         /*
 
         2 - IF the server contains itself in the serverrecords list, then remove it
 
-         */
+        */
         JSONObject serverTraverser = new JSONObject();
         for (int i = 0; i < Server.serverRecords.size(); i++) {
-            serverTraverser = (JSONObject) Server.serverRecords.get(i);
-            if (serverTraverser.get("hostname").equals(Server.host)) {
-                if (serverTraverser.get("port").equals(Server.port)) {
+          serverTraverser = (JSONObject) Server.serverRecords.get(i);
+          if (serverTraverser.get("hostname").equals(Server.host)) {
+                if (serverTraverser.get("port").toString().equals(Integer.toString(Server.port))) {
                     Server.serverRecords.remove(i);
                 }
-
             }
         }
-
         /*
-
         3a -  Enforce rules:  check if list of servers received is empty (missing or invalid server list)
          */
         if (Server.serverRecords.isEmpty()) {
@@ -104,7 +98,6 @@ public class serverCommands {
             response.put("errorMessage", "missing or invalid server list");
             output(response, output);
             return;
-
         } else {
             /*
 
@@ -150,6 +143,16 @@ public class serverCommands {
 
                  */
 
+                 /*
+
+                8 - Filter out only unique records from serverRecords
+
+                 *//*
+                Set<String> setWithUniqueValues = new HashSet<>(Server.serverRecords);
+                ArrayList<String> listWithUniqueValues = new ArrayList<>(setWithUniqueValues);
+                Server.serverRecords = listWithUniqueValues;
+                
+                */
                 JSONObject listToRandomServer = new JSONObject();
                 listToRandomServer.put("command", "EXCHANGE");
                 listToRandomServer.put("serverList", Server.serverRecords);
@@ -168,14 +171,7 @@ public class serverCommands {
                 JSONObject JSONresponse = (JSONObject) parser.parse(message);
                 Server.debug("RECEIVE EXCHANGE",JSONresponse.toJSONString());
 
-                /*
-
-                8 - Filter out only unique records from serverRecords
-
-                 */
-                Set<String> setWithUniqueValues = new HashSet<>(Server.serverRecords);
-                ArrayList<String> listWithUniqueValues = new ArrayList<>(setWithUniqueValues);
-                Server.serverRecords = listWithUniqueValues;
+               
 
             } catch (Exception e) {
                 
@@ -391,18 +387,14 @@ public class serverCommands {
     }
 
     public void query(JSONObject command, DataOutputStream output) throws URISyntaxException, IOException, ParseException {
-        
-        
-        
+                       
         resource = (JSONObject) command.get("resourceTemplate");
         Boolean relay = Boolean.valueOf(command.get("relay").toString());
         Resource resourceObject = (Resource) Resource.parseJson(resource);
         ArrayList queryResult = new ArrayList();
         JSONObject response = new JSONObject();
 
-        /*
-
-        IF RELAY IS TRUE
+        /* IF RELAY IS TRUE
 
         go through servers
             if it's online, send request

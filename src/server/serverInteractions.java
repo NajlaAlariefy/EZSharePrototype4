@@ -33,8 +33,6 @@ public void exchange() throws IOException {
                 {
                     if(serverTraverser.get("port").equals(Server.port))
                     { Server.serverRecords.remove(i);} 
-                    
-
                 }
             }
             
