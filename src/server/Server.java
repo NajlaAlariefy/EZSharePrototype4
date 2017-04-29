@@ -63,7 +63,7 @@ public class Server {
     
     // VARIABLE DECLARATION
     public static String host = "localhost";
-    public static int port = 8000;
+    public static int port = 5000;
     private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
     public static String secret = randomString();
     public static ArrayList serverResources = new ArrayList();

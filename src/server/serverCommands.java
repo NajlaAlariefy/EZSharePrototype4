@@ -161,6 +161,7 @@ public class serverCommands {
                 7 - Display distinct servers in the serverRecords
 
                  */
+                
                 DataInputStream serverInput = new DataInputStream(socket.getInputStream());
                 String message = serverInput.readUTF();
                 JSONParser parser = new JSONParser();
@@ -177,13 +178,13 @@ public class serverCommands {
                 Server.serverRecords = listWithUniqueValues;
 
             } catch (Exception e) {
+                
                 /*
 
                 9 - If the connection with the random server is not established remove serverRecord
 
                  */
-                time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-                System.out.println(time + " - [INFO] - connection with server " + connect_host + ":" + connect_port + " was not successful: " + e);
+                Server.debug("INFO","connection with server " + connect_host + ":" + connect_port + " was not successful: " + e);
                 serverTraverser = new JSONObject();
                 for (int i = 0; i < Server.serverRecords.size(); i++) {
                     serverTraverser = (JSONObject) Server.serverRecords.get(i);
@@ -192,8 +193,7 @@ public class serverCommands {
 
                     }
                 }
-                System.out.println(Server.serverRecords);
-
+              
             } finally {
                 response.put("response", "success");
                 output(response, output);
