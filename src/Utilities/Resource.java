@@ -88,20 +88,23 @@ public class Resource {
             
           String[] serverList = servers.split(",");
           JSONArray serverArray = new JSONArray();
+          System.out.println("hereer"+serverList.length);
+          
             for (int i = 0; i < serverList.length; i++) {
                 JSONObject serverObject = new JSONObject();
                 String hostname = serverList[i].split(":")[0].trim();
-                
-                  try {  int port = Integer.valueOf(serverList[i].split(":")[1].trim());
+                  try { 
+                    int port = Integer.valueOf(serverList[i].split(":")[1].trim());
                     serverObject.put("hostname", hostname);
                     serverObject.put("port", port);
-                    serverArray.add(serverObject);
-                  }
-                  catch ( Exception e){
-                      serverArray.set(i, "???");
-                  }
-                    
-            }
+                    serverArray.add(serverObject); 
+                  }catch ( Exception e){
+                    serverObject.put("hostname", hostname);
+                    serverObject.put("port", "invalid");
+                    serverArray.add(serverObject); 
+                  }     
+            
+          }
             
             
             
