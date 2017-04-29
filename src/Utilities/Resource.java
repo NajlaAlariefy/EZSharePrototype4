@@ -1,4 +1,5 @@
 package Utilities;
+import client.Client;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -88,8 +89,7 @@ public class Resource {
             
           String[] serverList = servers.split(",");
           JSONArray serverArray = new JSONArray();
-          System.out.println("hereer"+serverList.length);
-          
+           
             for (int i = 0; i < serverList.length; i++) {
                 JSONObject serverObject = new JSONObject();
                 String hostname = serverList[i].split(":")[0].trim();
@@ -173,7 +173,7 @@ public class Resource {
                         break;
                 }
                 default:
-                    System.out.println("[INFO] - command name is invalid");
+                 // no need for message:  Client.debug("INFO" , "command name is invalid");
                 
             }
             

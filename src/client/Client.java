@@ -61,7 +61,7 @@ public class Client {
     
      */
     
-    public static  boolean debug = true;
+    public static boolean debug = true;
     
     
     @SuppressWarnings("empty-statement")
@@ -73,17 +73,17 @@ public class Client {
         
          */
         String ip = "localhost";
-        int port = 3000;
-        List<String> tags = Arrays.asList("css");
+        int port = 5000;
+        List<String> tags = Arrays.asList("");
 
-        String commandName = "FETCH";
-        String name = "aname";
-        String description = "   descp   ";
-        String URI = "file:///Users/najla/Dropbox/DistributedSystems/EZSharePrototype4/NAME.png"; //http://GOOGLE.com/a\0dvertising/youtube-preroll";
-        String owner = " a o";
+        String commandName = "EXCHANGE";
+        String name = "";
+        String description = "      ";
+        String URI = "http://GOOGLE.com/";;//file:///Users/najla/Dropbox/DistributedSystems/EZSharePrototype4/NAME.png"; 
+        String owner = " ";
         String channel = "jjOA";
         String ezserver = "";
-        String secret = "qy931oc4of9sopezinijw80xw5sh7m";
+        String secret = "b7hbk0l0up9ayp064udcubtxepzmcj";
         String servers = "localhost:3000, localhost:5000, localhost:8000";
 
         boolean relay = true; 
@@ -309,7 +309,7 @@ public class Client {
 
     }
 
-    static void debug(String type, String message) {
+    public static void debug(String type, String message) {
        
         if (Client.debug){
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));

@@ -142,9 +142,8 @@ public class serverCommands {
             try {
                 Socket socket = null;
                 socket = new Socket(connect_host, connect_port);
-                time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
                 socket.setSoTimeout(exchangeInterval);
-                System.out.println(time + " - [INFO] - exchange with " + connect_host + ":" + connect_port + " is successful.");
+                Server.debug("INFO","exchange with " + connect_host + ":" + connect_port + " is successful.");
                 /*
 
                 6 - Sending the list to the randomly selected server
@@ -166,8 +165,7 @@ public class serverCommands {
                 String message = serverInput.readUTF();
                 JSONParser parser = new JSONParser();
                 JSONObject JSONresponse = (JSONObject) parser.parse(message);
-                time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-                System.out.println(time + " - [RECEIVE QUERY] - " + JSONresponse.toJSONString());
+                Server.debug("RECEIVE EXCHANGE",JSONresponse.toJSONString());
 
                 /*
 
@@ -393,9 +391,11 @@ public class serverCommands {
     }
 
     public void query(JSONObject command, DataOutputStream output) throws URISyntaxException, IOException, ParseException {
+        
+        
+        
         resource = (JSONObject) command.get("resourceTemplate");
         Boolean relay = Boolean.valueOf(command.get("relay").toString());
-
         Resource resourceObject = (Resource) Resource.parseJson(resource);
         ArrayList queryResult = new ArrayList();
         JSONObject response = new JSONObject();
@@ -414,33 +414,22 @@ public class serverCommands {
             if (Server.serverRecords.isEmpty()) {
                 //If the server Records list is empty
                 //Just don't do anything
-                System.out.println("Server list is empty");
+               Server.debug("RELAY INFO","server list is empty");
             } else {
 
-                System.out.println("Server list is not empty");
+                 Server.debug("RELAY INFO","server querying initiated");
                 String connect_host = "";
                 int connect_port;
-                JSONObject hostPort = new JSONObject();
-                //Get request string ready
+                JSONObject hostPort = new JSONObject(); 
                 JSONObject request = new JSONObject();
-                // JSONArray to receive query results from each server
-                //NO NEED  JSONArray externalQueries = new JSONArray();
+                
+                // JSONArray to receive query results from each server 
                 request.put("command", "QUERY");
                 request.put("relay", "false");
                 resource.put("channel", "");
                 resource.put("owner", "");
                 request.put("resourceTemplate", resource);
-                //traverse through servers
-                /*
-
-
-                    HARD CODING IN PROCESS
-
-
-                     String serverinfo = "localhost:3000, localhost:8000, localhost:5000";
-
-
-                 */
+                //traverse through servers 
 
                 for (int i = 0; i < Server.serverRecords.size(); i++) {
                     /*
@@ -451,33 +440,29 @@ public class serverCommands {
 
                      */
 
-                    System.out.println("Connecting to server " + Server.serverRecords.get(i));
+                    Server.debug("RELAY INFO","connecting to server " + Server.serverRecords.get(i));
 
                     hostPort = (JSONObject) Server.serverRecords.get(i);
-                    //  int iend = hostPort.indexOf(":");
-                    // System.out.println("Index of : " + iend);
-
                     connect_host = hostPort.get("hostname").toString();
-                    //hostPort.substring(0, iend);
-                    System.out.println("HOST NAME:" + connect_host);
+                    Server.debug("RELAY INFO","hostname:" + connect_host);
+                    connect_port = Integer.parseInt(hostPort.get("port").toString()); 
+                    Server.debug("RELAY INFO","port:" + connect_port);
 
-                    connect_port = Integer.parseInt(hostPort.get("port").toString());
-//Integer.parseInt(hostPort.substring(iend + 1, hostPort.length()));
-                    System.out.println("PORT NAME:" + connect_port);
-
+                    //if the server isn't relaying to itself
                     if (!(connect_host == Server.host && connect_port == Server.port)) {
                         try {
                             // Create connection with the selected server from the serverlist
                             Socket socket = null;
                             socket = new Socket(connect_host, connect_port);
                             DataOutputStream serverOutput = new DataOutputStream(socket.getOutputStream());
-                            serverOutput.writeUTF("Connecting to server " + Server.serverRecords.get(i));
-                            output(request, serverOutput);
-                            // Input stream
+                            Server.debug("RELAY INFO","Connecting to server " + Server.serverRecords.get(i));
+                            output(request, serverOutput); 
                             DataInputStream input = new DataInputStream(socket.getInputStream());
                             // If there are query results:
                             if (!receiveQuery(input).isEmpty()) {
                                 queryResult.addAll(receiveQuery(input));
+                                 Server.debug("RELAY RECEIVE", queryResult.toString());
+                           
                             }
 
                             // for each in Query results
@@ -679,7 +664,7 @@ public class serverCommands {
         String firstResponse = input.readUTF();
         JSONParser parser = new JSONParser();
         JSONObject JSONresponse = (JSONObject) parser.parse(firstResponse);
-
+        
         System.out.println("[RECEIVE] :" + JSONresponse.get("response"));
 
         Integer size = -1;
@@ -723,18 +708,7 @@ public class serverCommands {
     }
 
     private void output(JSONObject response, DataOutputStream output) throws IOException {
-        Boolean debug = true;
-        System.out.println("UTF OUT");
-        if (debug) {
-            time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-            System.out.println(time + " - [SEND] - " + response.toJSONString());
-            Handler consoleHandler = null;
-            consoleHandler = new ConsoleHandler();
-            LOGGER.addHandler(consoleHandler);
-            consoleHandler.setLevel(Level.ALL);
-            LOGGER.setLevel(Level.ALL);
-            // LOGGER.fine("[SEND]:" + response.toJSONString());
-        }
+           Server.debug("SEND",response.toJSONString());
         output.writeUTF(response.toJSONString());
 
     }

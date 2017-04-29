@@ -62,6 +62,8 @@ public class parseCommand {
             response.put("response", "error");
             response.put("errorMessage", "missing or incorrect type for command");
             output.writeUTF(response.toJSONString());
+            Server.debug("SEND", response.toJSONString());
+                    
         }
 
     }

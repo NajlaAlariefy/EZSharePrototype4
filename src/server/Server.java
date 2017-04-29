@@ -63,7 +63,7 @@ public class Server {
     
     // VARIABLE DECLARATION
     public static String host = "localhost";
-    public static int port = 3000;
+    public static int port = 8000;
     private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
     public static String secret = randomString();
     public static ArrayList serverResources = new ArrayList();
@@ -133,7 +133,7 @@ public class Server {
                 }
             }
             Timer timer = new Timer();
-            timer.schedule(new serverExchanges(), 0, exchangeInterval);
+          //  timer.schedule(new serverExchanges(), 0, exchangeInterval);
 
             
             
