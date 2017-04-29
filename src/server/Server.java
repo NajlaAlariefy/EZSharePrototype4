@@ -193,5 +193,11 @@ public class Server {
         }
 
     }
-
+ static void debug(String type, String message) {
+       boolean debug = true;
+        if (debug){
+        String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+        System.out.println(time + " - [" + type + "] - " + message);
+        }
+    }
 }

@@ -84,7 +84,7 @@ public class Resource {
     2 -  must not start or end with white space. (DONE, but not with tags)
     3 -  As well, the Owner cannot be the character "*". (DONE)
     */
-    public static JSONObject inputToJSON(String commandname,String name , String owner, String description, String channel, String uri, List<String> tags, String ezserver, String secret, Boolean relay, String servers, DataInputStream input, DataOutputStream output) throws IOException, URISyntaxException{
+    public static JSONObject inputToJSON(String commandname,String name , String owner, String description, String channel, String uri, List<String> tags, String ezserver, String secret, Boolean relay,  String servers, DataInputStream input, DataOutputStream output) throws IOException, URISyntaxException{
             
           String[] serverList = servers.split(",");
           JSONArray serverArray = new JSONArray();
@@ -103,19 +103,36 @@ public class Resource {
                     
             }
             
+            
+            
+            
+            /*
+            
+            Trimming white space silently
+            
+            */
             name = name.trim();
             owner = owner.trim();
             description = description.trim();
             channel = channel.trim();
             ezserver = ezserver.trim();         
-            uri = uri.trim();             
+            uri = uri.trim(); 
+
+
+
+            /*
+            
+            Dealing with owner asterisk
+            Dealing with null values silently
+            
+            */            
             owner = owner.replace("*", "");             
             owner = owner.replace("\0", ""); 
             channel = channel.replace("\0", ""); 
             name = name.replace("\0", ""); 
-            description = description.replace("\0", ""); 
-             
-            description = description.replace("\0", ""); 
+            description = description.replace("\0", "");           
+            uri = uri.replace("\0", ""); 
+           ezserver = ezserver.replace("\0", ""); 
             
             Resource resource = new Resource();
             resource.setName(name);

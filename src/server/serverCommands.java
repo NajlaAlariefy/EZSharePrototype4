@@ -44,22 +44,22 @@ public class serverCommands {
     public void exchange(JSONObject command, DataOutputStream output, int exchangeInterval) throws IOException {
 
         /*
-        1 - Copy all in serverList (from the command) to the server's server.serverRecords 
-        
+        1 - Copy all in serverList (from the command) to the server's server.serverRecords
+
         2 - If the server is included in the list, remove it (because it may connect to itself)
-        
+
         3a - Enforce rules:  check if list of servers received is empty (missing or invalid server list)
         3b - Enforce rules:  check if server record received is wrong (missing resourcetemplate )
-      
-      
+
+
         4 - Pick a random server
-        
+
         5 - Attemp connect to the randomly selected server
-        
+
         6 - Sending the list to the randomly selected server
-        
+
         7 - Display distinct servers in the serverRecords
-        
+
         8 - Filter out only unique records from serverRecords
 
         9 - If the connection with the random server is not established remove serverRecord
@@ -71,18 +71,18 @@ public class serverCommands {
         serverArray = (JSONArray) command.get("serverList");
 
         /*
-        
-        1 - Copy all in serverList (from the command) to the server's server.serverRecords 
-        
+
+        1 - Copy all in serverList (from the command) to the server's server.serverRecords
+
          */
         for (int i = 0; i < serverArray.size(); i++) {
             Server.serverRecords.add(serverArray.get(i));
         }
 
         /*
-        
+
         2 - IF the server contains itself in the serverrecords list, then remove it
-        
+
          */
         JSONObject serverTraverser = new JSONObject();
         for (int i = 0; i < Server.serverRecords.size(); i++) {
@@ -96,7 +96,7 @@ public class serverCommands {
         }
 
         /*
-        
+
         3a -  Enforce rules:  check if list of servers received is empty (missing or invalid server list)
          */
         if (Server.serverRecords.isEmpty()) {
@@ -107,7 +107,7 @@ public class serverCommands {
 
         } else {
             /*
-        
+
          3b -  Enforce rules:  check if server record received is wrong (missing resourcetemplate )
              */
             for (int i = 0; i < Server.serverRecords.size(); i++) {
@@ -121,9 +121,9 @@ public class serverCommands {
             }
 
             /*
-        
+
                 4 - Pick a random server to connect from the list
-        
+
              */
             Random r = new Random();
             JSONObject randomServer = new JSONObject();
@@ -132,9 +132,9 @@ public class serverCommands {
             randomServer = (JSONObject) Server.serverRecords.get(index);
 
             /*
-        
+
                 5 - Attemp connect to the randomly selected server
-        
+
              */
             String connect_host = randomServer.get("hostname").toString();
             int connect_port = ((Long) randomServer.get("port")).intValue();
@@ -146,9 +146,9 @@ public class serverCommands {
                 socket.setSoTimeout(exchangeInterval);
                 System.out.println(time + " - [INFO] - exchange with " + connect_host + ":" + connect_port + " is successful.");
                 /*
-        
+
                 6 - Sending the list to the randomly selected server
-        
+
                  */
 
                 JSONObject listToRandomServer = new JSONObject();
@@ -158,9 +158,9 @@ public class serverCommands {
                 output(listToRandomServer, serverOutput);
 
                 /*
-        
+
                 7 - Display distinct servers in the serverRecords
-        
+
                  */
                 DataInputStream serverInput = new DataInputStream(socket.getInputStream());
                 String message = serverInput.readUTF();
@@ -170,9 +170,9 @@ public class serverCommands {
                 System.out.println(time + " - [RECEIVE QUERY] - " + JSONresponse.toJSONString());
 
                 /*
-        
+
                 8 - Filter out only unique records from serverRecords
-        
+
                  */
                 Set<String> setWithUniqueValues = new HashSet<>(Server.serverRecords);
                 ArrayList<String> listWithUniqueValues = new ArrayList<>(setWithUniqueValues);
@@ -180,9 +180,9 @@ public class serverCommands {
 
             } catch (Exception e) {
                 /*
-        
+
                 9 - If the connection with the random server is not established remove serverRecord
-        
+
                  */
                 time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
                 System.out.println(time + " - [INFO] - connection with server " + connect_host + ":" + connect_port + " was not successful: " + e);
@@ -245,7 +245,7 @@ public class serverCommands {
                 output(resource, output);
 
                 try {
-                    //read file as random access file   
+                    //read file as random access file
                     RandomAccessFile byteFile = new RandomAccessFile(f, "r");
                     byte[] sendingBuffer = new byte[1024 * 1024];
 
@@ -276,87 +276,108 @@ public class serverCommands {
 
     public void publish(JSONObject command, DataOutputStream output) throws IOException, URISyntaxException {
 
-        //create a response object
-        JSONObject response = new JSONObject();
-
-        //store resource in JSON Object
-        if (command.containsKey("resource")) {
-
-            resource = (JSONObject) command.get("resource");
-            Resource resourcePublish = Resource.parseJson(resource);
-
-            //store URI in URI object
-            String link = (String) resource.get("uri");
-            URI uri = new URI(link);
-            if (link.equals("") )
-                    {
-                         response.put("response", "error");
-                            response.put("errorMessage", "missing resource");
-                            output(response,output);
-                            return;
-                    }
-            
-            //check for rules
-            
-            System.out.println("some error" + uri.toString());
-             Boolean isWeb = uri.getScheme().equals("http") || uri.getScheme().equals("https");
-            Boolean isAbsolute = uri.isAbsolute();
-            String present = (String) resource.get("uri");
-            Boolean isPresent = present.equals("");
-            Boolean isPrimaryKey = primaryKeyCheckAndRemove(resourcePublish);
-
-            /*
+        /*
         enforced rules
-        1- is a web
-        2- is absolute
-        3- is present
-        4- is primary (not event Channel/URI different Owner combo) 
-             */
-            if (isPrimaryKey) {
-
-                if (!isPresent) {
-                    if (isWeb) {
-                        if (isAbsolute) {
-
-                            Server.serverResources.add(resourcePublish);
-                            response.put("response", "success");
-
-                        } else {
-                            //if URI isn't absolute
-                            response.put("response", "error");
-                            response.put("errorMessage", "invalid resource");
-
-                        }
-                    } else {
-                        //if the URI isn't a web
-                        response.put("response", "error");
-                        response.put("errorMessage", "invalid resource");
-
-                    }
-                } else {
-                    //if the URI is not present
-                    response.put("response", "error");
-                    response.put("errorMessage", "cannot publish resource");
-
-                }
-            } else {
-                //if the resource provided is same Channel / URI but different Owner
-                response.put("response", "error");
-                response.put("errorMessage", "cannot publish resource");
-            }
-
-        } else {
+        0 - the resource fields is present
+        1 - if the URI field is present
+        2 - if the URI field is not empty
+        3 - is a web
+        4 - is absolute 
+        5 - is primary (not event Channel/URI different Owner combo)
+        (COMMENTED) 6 - The server sets its own host and port on the resource
+        7 - resource is committed to server resources
+         */
+        
+        
+        // 0 -  if the resource field was not given
+        JSONObject response = new JSONObject();
+        if (!command.containsKey("resource")) {
             response.put("response", "error");
             response.put("errorMessage", "missing resource");
+            output(response, output);
+            return;
+        }
+
+        // 1 - if the URI field is present (i.e. not missing) 
+        resource = (JSONObject) command.get("resource");
+        Resource resourcePublish = Resource.parseJson(resource);
+        String link = (String) resource.get("uri");
+        URI uri = new URI(link);
+        if (!resource.containsKey("uri")) {
+            response.put("response", "error");
+            response.put("errorMessage", "missing resource");
+            output(response, output);
+            return;
+        }
+
+        // 2 - if the URI field is not empty
+        if (link.equals("")) {
+            response.put("response", "error");
+            response.put("errorMessage", "cannot publish resource");
+            output(response, output);
+            return;
+        }
+
+        // 3 - is a web 
+        try {
+            Boolean isWeb = uri.getScheme().equals("http") || uri.getScheme().equals("https");
+            if (!isWeb) {
+                response.put("response", "error");
+                response.put("errorMessage", "invalid resource");
+                output(response, output);
+                return;
+            }
+        } catch (Exception e) {
+            response.put("response", "error");
+            response.put("errorMessage", "invalid resource");
+            output(response, output);
+            return;
 
         }
-        output(response, output);
+
+        // 4 - is absolute
+        try {
+            Boolean isAbsolute = uri.isAbsolute();
+            if (!isAbsolute) {
+                //if URI isn't absolute
+                response.put("response", "error");
+                response.put("errorMessage", "cannot publish resource");
+                output(response, output);
+                return;
+            }
+        } catch (Exception e) { 
+            response.put("response", "error");
+            response.put("errorMessage", "cannot publish resource");
+            output(response, output);
+            return;
+
+        }
+
+        //5 - is primary (not event Channel/URI different Owner combo)
+        Boolean isPrimaryKey = primaryKeyCheckAndRemove(resourcePublish);
+        if (isPrimaryKey) {
+          
+        } else {
+            //if the resource provided is same Channel / URI but different Owner
+            response.put("response", "error");
+            response.put("errorMessage", "cannot publish resource");
+
+        }
+
+            // 6 - The server sets its own host and port on the resource
+            // resourcePublish.setServer(Server.host + ":" + Server.port);
+            
+            // 7 - commit the resource to server's resources
+            Server.serverResources.add(resourcePublish);
+            response.put("response", "success");
+            output(response, output);
     }
 
+    
     private boolean primaryKeyCheckAndRemove(Resource resource) {
         //get resource object
         //check for primary keys
-        //if it exists, remove it 
+        //if it exists, remove it
         Resource queryResource = new Resource();
         Boolean isPrimary = true;
         for (int i = 0; i < Server.serverResources.size(); i++) {
@@ -385,16 +406,16 @@ public class serverCommands {
         Resource resourceObject = (Resource) Resource.parseJson(resource);
         ArrayList queryResult = new ArrayList();
         JSONObject response = new JSONObject();
-     
+
         /*
-        
+
         IF RELAY IS TRUE
-        
+
         go through servers
             if it's online, send request
             receive the response
             add to queryResult
-        
+
          */
         if (relay) {
             if (Server.serverRecords.isEmpty()) {
@@ -418,23 +439,23 @@ public class serverCommands {
                 request.put("resourceTemplate", resource);
                 //traverse through servers
                 /*
-                    
-                    
+
+
                     HARD CODING IN PROCESS
-                    
-                    
+
+
                      String serverinfo = "localhost:3000, localhost:8000, localhost:5000";
 
-                    
+
                  */
 
                 for (int i = 0; i < Server.serverRecords.size(); i++) {
-                    /* 
-                    if ONLINE 
+                    /*
+                    if ONLINE
                     1- connect
                     2- query for results
                     3- store them in queryResults
-                    
+
                      */
 
                     System.out.println("Connecting to server " + Server.serverRecords.get(i));
@@ -596,7 +617,7 @@ public class serverCommands {
         1- is a file
         2- is absolute
         3- is present
-        4- is primary (not event Channel/URI different Owner combo) 
+        4- is primary (not event Channel/URI different Owner combo)
         5- is not authortitave
         6- is present on the machine
                  */
@@ -633,7 +654,7 @@ public class serverCommands {
                         response.put("errorMessage", "cannot share resource (owner is different)");
                     }
                 } else {
-                    //if the file is not on the server 
+                    //if the file is not on the server
                     response.put("response", "error");
                     response.put("errorMessage", "cannot share resource (file is not on server)");
                 }
@@ -653,11 +674,11 @@ public class serverCommands {
     }
 
     /*
-    
+
     This function will be called whenever relay is set to true
     It will receive the list of results from each server
-    then return each 
-    
+    then return each
+
      */
     public ArrayList receiveQuery(DataInputStream input) throws IOException, ParseException, URISyntaxException {
 
@@ -673,7 +694,7 @@ public class serverCommands {
         Long result = 0L;
         ArrayList query = new ArrayList();
         Boolean done = false;
-        //Resource object to hold the JSON object retrieved for each resource 
+        //Resource object to hold the JSON object retrieved for each resource
         Resource resource = new Resource();
         if (JSONresponse.get("response") == "success") {
 
