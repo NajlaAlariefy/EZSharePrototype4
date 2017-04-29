@@ -34,14 +34,45 @@ import javax.print.DocFlavor.STRING;
 
 public class Client {
 
-    // IP and port
-    private static String ip = "localhost";
-    private static int port = 3000;
     private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
 
+    /*
+    
+    1- initialized arguments (hardcoded)
+    
+    2- command line interface parsing
+    
+    3- 
+    
+     */
     @SuppressWarnings("empty-statement")
     public static void main(String[] args) throws ParseException, URISyntaxException, ParseException, org.apache.commons.cli.ParseException {
 
+        /*
+    
+             1- initialized arguments (hardcoded)
+        
+         */
+        String ip = "localhost";
+        int port = 3000;
+        List<String> tags = Arrays.asList("css");
+        String commandName = "PUBLISH";
+        String name = "aname";
+        String description = "descp";
+        String URI = "abc.com";
+        String owner = "an owner";
+        String channel = "channel";
+        String ezserver = "localhost:5000 ";
+        String secret = "ticd8pais2dj4yku60fxpvtg3e9564";
+        String servers = "localhost:3000, localhost:5000, localhost:8000";
+        boolean relay = true;
+        boolean debug = false;
+
+        /*
+    
+             2- CLI parsing
+        
+         */
         boolean isValid = false;
         Options options = new Options();
         options.addOption("channel", true, "channel");
@@ -64,36 +95,50 @@ public class Client {
 
         CommandLineParser clparser = new DefaultParser();
         CommandLine cmd = null;
-
         cmd = clparser.parse(options, args);
 
-        //  Scanner sc = new Scanner(System.in);    
-        //String commandName = sc.nextLine();
-        List<String> tags = Arrays.asList("css");
-        String commandName = "PUBLISH";
-        String name = "aname";
-        String description = "descp";
-        String URI = "abc.com";
-        String owner = "an owner";
-        String channel = "channel";
-        String ezserver = "localhost:5000 ";
-        String secret = "ticd8pais2dj4yku60fxpvtg3e9564";
-        String servers = "localhost:3000, localhost:5000, localhost:8000";
-        Boolean relay = true;
+        if (cmd.hasOption("servers")) {
+            servers = cmd.getOptionValue("servers");
+        }
+        if (cmd.hasOption("host") && cmd.hasOption("port")) {
+            if (cmd.getOptionValue("host").equals(" ") || cmd.getOptionValue("port").equals(" ")) {
+                String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+                System.out.println(time + " - [INFO] - Error: Invalid host/port ");
+                LOGGER.info("error: invalid host/port");
+                return;
+
+            } else {
+                //IF PORT IS NOT AN INTEGER OF LENGTH 4, RETURN ERROR
+                //ELSE STORE IN IP & PORT
+                String port1 = cmd.getOptionValue("port");
+                if (cmd.getOptionValue("port").matches("^-?\\d+$")) {
+
+                    port = Integer.parseInt(port1);
+                    isValid = true;
+                    ip = cmd.getOptionValue("host");
+
+                } else {
+                     LOGGER.info("Error:Invalid port");
+                    isValid = false;
+                }
+
+            }
+
+        } else {
+            System.out.println("Missing host/port information");
+        }
         /*Parsing the command line arg*/
         // CHECKING FOR HOST & PORT
         if (cmd.hasOption("servers")) {
             servers = cmd.getOptionValue("servers");
             if (servers == "") {
                 isValid = false;
-                System.out.println("No servers present");
+                //  System.out.println("No servers present");
             } else {
                 isValid = true;
             }
         }
-        //System.out.println(cmd.getOptionValue("port") + " - " + cmd.getOptionValue("host"));
         if (cmd.hasOption("host") && cmd.hasOption("port")) {
-            //IF EITHER IS EMPTY, RETURN ERROR
             if (cmd.getOptionValue("host").equals(" ") || cmd.getOptionValue("port").equals(" ")) {
                 // String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
                 //System.out.println(time + " - [INFO] - Error: Invalid host/port ");
@@ -104,7 +149,7 @@ public class Client {
                 //IF PORT IS NOT AN INTEGER OF LENGTH 4, RETURN ERROR
                 //ELSE STORE IN IP & PORT
                 String port1 = cmd.getOptionValue("port");
-                if (cmd.getOptionValue("port").matches("^-?\\d+$") && port1.length() == 4) {
+                if (cmd.getOptionValue("port").matches("^-?\\d+$")) {
 
                     port = Integer.parseInt(port1);
                     isValid = true;
@@ -122,38 +167,82 @@ public class Client {
         } else {
             System.out.println("Missing host/port information");
         }
+        if (cmd.hasOption("uri")) {
+            URI = cmd.getOptionValue("uri");
+        }
+        if (cmd.hasOption("owner")) {
+            owner = (cmd.getOptionValue("owner").trim());
+        }
+        if (cmd.hasOption("channel")) {
+            channel = (cmd.getOptionValue("channel").trim());
+        }
+        if (cmd.hasOption("name")) {
+            name = (cmd.getOptionValue("name").trim());
+        }
+        if (cmd.hasOption("description")) {
+            description = cmd.getOptionValue("description").trim();
+        }
+        if (cmd.hasOption("secret")) {
+            secret = cmd.getOptionValue("secret");
+        }
+        if (cmd.hasOption("relay")) {
+            relay = Boolean.valueOf(cmd.getOptionValue("relay"));
+        }
+
+        List<String> tagList = new ArrayList<>();
+        if (cmd.hasOption("tags")) {
+            String[] tags1 = cmd.getOptionValue("tags").split(",");
+            for (int i = 0; i < tags1.length; i++) {
+                tagList.add(tags1[i].trim());
+            }
+        }
+        if (cmd.hasOption("debug")) {
+            debug = true;
+        }
+        if (cmd.hasOption("publish")) {
+            commandName = "PUBLISH";
+
+        } else if (cmd.hasOption("remove")) {
+            commandName = "REMOVE";
+
+        } else if (cmd.hasOption("share")) {
+            commandName = "SHARE";
+
+        } else if (cmd.hasOption("query")) {
+            commandName = "QUERY";
+
+        } else if (cmd.hasOption("fetch")) {
+            commandName = "FETCH";
+
+        } else if (cmd.hasOption("exchange")) {
+            commandName = "EXCHANGE";
+
+        }
+        debug("INFO", " command name is" + commandName);
+
         if ((!cmd.hasOption("uri") || cmd.getOptionValue("uri").equals("")) && !cmd.hasOption("exchange")) {
-            System.out.println("require uri");
             isValid = false;
         } else {
             URI = cmd.getOptionValue("uri");
             isValid = true;
         }
         if (cmd.hasOption("owner") && !cmd.hasOption("exchange")) {
-            if (cmd.getOptionValue("owner").trim().equals("*")) {
-                System.out.println("owner cannot be \"*\"");
-                isValid = false;
-            } else {
-
-                isValid = true;
-                owner = (cmd.getOptionValue("owner").trim());
-            }
-
-        }  
+            owner = (cmd.getOptionValue("owner").trim());
+        }
         if (cmd.hasOption("channel")) {
             channel = (cmd.getOptionValue("channel").trim());
-        }  
+        }
+
         if (cmd.hasOption("name")) {
             name = (cmd.getOptionValue("name").trim());
-        }  
+        }
         if (cmd.hasOption("description")) {
             description = cmd.getOptionValue("description").trim();
-        }  
-        List<String> tagList = new ArrayList<>();
+        }
         if (cmd.hasOption("tags")) {
             String[] tags1 = cmd.getOptionValue("tags").split(",");
             for (int i = 0; i < tags1.length; i++) {
-                tagList.add(tags1[i].trim());
+                tags.add(tags1[i].trim());
             }
         }
         if (cmd.hasOption("secret")) {
@@ -162,9 +251,8 @@ public class Client {
         if (cmd.hasOption("relay")) {
             relay = Boolean.valueOf(cmd.getOptionValue("relay"));
         }
-        boolean debug = false;
         if (cmd.hasOption("debug")) {
-           // debug = true;
+            debug = Boolean.valueOf(cmd.getOptionValue("debug"));
         }
         if (cmd.hasOption("publish")) {
             commandName = "PUBLISH";
@@ -183,11 +271,8 @@ public class Client {
             isValid = true;
         } else if (cmd.hasOption("exchange")) {
             commandName = "EXCHANGE";
-            isValid = true;
-        } else {
-            System.out.println("invalid command");
-            isValid = false;
-        }
+            
+        }  
         System.out.println(commandName);
 
         //REMOVE LATER
@@ -204,17 +289,12 @@ public class Client {
                 String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
                 System.out.println(time + " - [INFO] - requesting connection with server");
 
-             
-
                 /*
             RECEIVING RESPONSE FROM SERVER
                  */
-                
-                  time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+                time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
                 System.out.println(time + " - [INFO] - connection with server is established");
 
-                
-                
                 /* DELETE LATER
                 String message =  input.readUTF();
                 JSONParser parser = new JSONParser();
@@ -232,11 +312,8 @@ public class Client {
              
                 //time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
                 //System.out.println(time + " - [RECEIVE] - " + message);
-*/
-                
-                
-                
-                /*
+                 */
+ /*
             READING ARGUMENTS FROM CLI 
             (for now only command name is read, the rest is hardcoded.
                 
@@ -261,13 +338,13 @@ public class Client {
                 JSONObject command = new JSONObject();
                 Resource resource = new Resource();
                 command = resource.inputToJSON(commandName, name, owner, description, channel, URI, tags, ezserver, secret, relay, servers, input, output);
-                 /*
+                /*
             SEND COMMAND TO SERVER
                  */
                 //System.out.println("Server: Sending: " + command.toString());
                 output.writeUTF(command.toJSONString());
                 System.out.println(time + " - [SEND] -  " + command.toJSONString());
-                    
+
                 /*
             RECEIVING RESPONSE FROM ANY COMMAND INVOKED 
             (could be an error, like 'invalid command')
@@ -276,8 +353,8 @@ public class Client {
 
                     if (input.available() > 0) {
                         String response = input.readUTF();
-                         JSONParser parser = new JSONParser();
-                         JSONObject JSONresponse = (JSONObject) parser.parse(response);
+                        JSONParser parser = new JSONParser();
+                        JSONObject JSONresponse = (JSONObject) parser.parse(response);
                         time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
                         System.out.println(time + " - [RECEIVE] - " + JSONresponse.toJSONString());
                         //if(debug)
@@ -316,11 +393,15 @@ public class Client {
                 // socket.close();
             }
         } else {
-            //String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-            //System.out.println(time + " - [INFO] - Error: Connection aborted");
-            LOGGER.info("Error:Connection aborted");
+            //LOGGER.info("Error:Connection aborted");
 
         }
+
+    }
+
+    static void debug(String type, String message) {
+        String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+        System.out.println(time + " - [" + type + "] - " + message);
 
     }
 
