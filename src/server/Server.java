@@ -15,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.ConsoleHandler;
@@ -63,7 +64,7 @@ public class Server {
     
     // VARIABLE DECLARATION
     public static String host = "localhost";
-    public static int port = 5000;
+    public static int port = 8000;
     private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
     public static String secret = randomString();
     public static ArrayList serverResources = new ArrayList();
@@ -133,14 +134,13 @@ public class Server {
                 }
             }
             Timer timer = new Timer();
-          //  timer.schedule(new serverExchanges(), 0, exchangeInterval);
+           // timer.schedule(new serverExchanges(), 0, exchangeInterval);
 
-            
-            
-            
-            
             //WHILE TRUE, WAIT FOR ANY CLIENT          
             while (true) {
+                if(counter >=1){
+                TimeUnit.SECONDS.sleep(1);
+                }
                 serveClient sc = new serveClient();
                 Socket client = server.accept();
                 counter++;

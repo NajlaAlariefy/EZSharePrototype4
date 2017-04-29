@@ -23,8 +23,6 @@ import org.json.simple.parser.JSONParser;
 public class serverInteractions {
 
 public void exchange() throws IOException {
-
-    
         //IF the server contains itself in the serverrecords list, then remove it
             JSONObject serverTraverser = new JSONObject();
             for (int i = 0; i < Server.serverRecords.size(); i++) {
@@ -34,7 +32,6 @@ public void exchange() throws IOException {
                     if(serverTraverser.get("port").equals(Server.port))
                     { Server.serverRecords.remove(i);} 
                     
-
                 }
             }
             
